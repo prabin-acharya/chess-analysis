@@ -1,6 +1,7 @@
 console.log("Hello, I am in ContentScript")
 
-function injectLine(allPieces) {
+function injectLine(pieceType1, pieceType2) {
+    const allPieces = extractPositionData();
     const chessBoard = document.querySelector('wc-chess-board.board');
 
     if (!chessBoard) {
@@ -8,12 +9,13 @@ function injectLine(allPieces) {
         return;
     }
 
-    const blackQueen = Array.from(allPieces).find(piece => piece.type == "black-king")
-    const whiteQueen = Array.from(allPieces).find(piece => piece.type == "white-king")
-    console.log(blackQueen, whiteQueen)
+    const piece1 = Array.from(allPieces).find(piece => piece.type === pieceType1);
+    const piece2 = Array.from(allPieces).find(piece => piece.type === pieceType2);
+    console.log(piece1, piece2)
 
-    if (!blackQueen || !whiteQueen) {
-        console.error('Black or white queen not found.');
+
+    if (!piece1 || !piece2) {
+        console.error(`${pieceType1} or ${pieceType2} not found.`);
         return;
     }
 
@@ -25,24 +27,17 @@ function injectLine(allPieces) {
     }
 
 
+    const piece1X = 100 / 8 * piece1.col - 100 / 16;
+    const piece1Y = 100 / 8 * (9 - piece1.row) - 100 / 16;
 
-
-    // Calculate relative positions based on the chess pieces and the entire board
-    const blackQueenX = 100 / 8 * (blackQueen.col) - 100 / 16
-    const blackQueenY = 100 / 8 * (blackQueen.row) - 100 / 16
-
-
-    const whiteQueenX = 100 / 8 * (whiteQueen.col) - 100 / 16
-    const whiteQueenY = 100 / 8 * (whiteQueen.row) - 100 / 16
-
-
+    const piece2X = 100 / 8 * piece2.col - 100 / 16;
+    const piece2Y = 100 / 8 * (9 - piece2.row) - 100 / 16;
 
     const newPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     newPolygon.setAttribute('id', 'custom-line');
     newPolygon.setAttribute('class', 'line');
 
-    // Points to draw a line as a polygon
-    const points = `${blackQueenX},${blackQueenY} ${whiteQueenX},${whiteQueenY}`;
+    const points = `${piece1X} ${piece1Y}, ${piece2X} ${piece2Y}`;
 
     newPolygon.setAttribute('points', points);
     newPolygon.setAttribute('style', 'fill: none; stroke: black; stroke-width: 3;');
@@ -92,7 +87,7 @@ function extractPositionData() {
             }
         }
 
-        const [row, col] = squareClass.split('-')[1].split('');
+        const [col, row] = squareClass.split('-')[1].split('');
 
         const pieceData = {
             type: pieceType,
@@ -139,11 +134,8 @@ function logPositionData() {
 
 injectArrow();
 setTimeout(() => {
-    console.log('Hello');
-
     logPositionData();
-    const allPieces = extractPositionData();
-    injectLine(allPieces)
+    injectLine('white-rook', 'white-king')
 }, 3000);
 
 
