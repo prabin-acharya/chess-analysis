@@ -33,11 +33,20 @@ function injectLine(pieceType1, pieceType2) {
     const piece2X = 100 / 8 * piece2.col - 100 / 16;
     const piece2Y = 100 / 8 * (9 - piece2.row) - 100 / 16;
 
+    const length = calculateLength(piece1X, piece1Y, piece2X, piece2Y);
+    const bottomLeftPoint = findBottomLeftPoint(piece1X, piece1Y, piece2X, piece2Y)
+
+    const angle = calculateAngle(piece1X, piece1Y, piece2X, piece2Y)
+    console.log(angle, "angle")
+
+
     const newPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     newPolygon.setAttribute('id', 'custom-line');
     newPolygon.setAttribute('class', 'line');
 
     const points = `${piece1X} ${piece1Y}, ${piece2X} ${piece2Y}`;
+    console.log(points)
+    console.log(bottomLeftPoint)
 
     newPolygon.setAttribute('points', points);
     newPolygon.setAttribute('style', 'fill: none; stroke: black; stroke-width: 3;');
@@ -45,23 +54,6 @@ function injectLine(pieceType1, pieceType2) {
     svgContainer.appendChild(newPolygon);
 }
 
-
-function injectArrow() {
-    const newPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    newPolygon.setAttribute('id', 'custom-arrow');
-    newPolygon.setAttribute('class', 'arrow');
-    newPolygon.setAttribute('transform', 'rotate(30 50 50)');
-    newPolygon.setAttribute('points', '40 50, 50 30, 60 50');
-    newPolygon.setAttribute('style', 'fill: blue; opacity: 0.7;');
-
-    const chessBoard = document.querySelector('wc-chess-board.board');
-    if (chessBoard) {
-        const svgContainer = chessBoard.querySelector('.arrows');
-        if (svgContainer) {
-            svgContainer.appendChild(newPolygon);
-        }
-    }
-}
 
 function extractPositionData() {
     const chessBoard = document.querySelector('wc-chess-board.board');
@@ -121,6 +113,34 @@ function getPieceType(classList) {
 }
 
 
+function calculateLength(x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    return length;
+}
+
+function findBottomLeftPoint(x1, y1, x2, y2) {
+    if (x1 < x2 || (x1 === x2 && y1 < y2)) {
+        return { x: x1, y: y1 };
+    } else {
+        return { x: x2, y: y2 };
+    }
+}
+
+function calculateAngle(x1, y1, x2, y2) {
+    const deltaX = x2 - x1;
+    const deltaY = y2 - y1;
+
+    // Calculate the angle in radians
+    const angleRad = Math.atan2(deltaY, deltaX);
+
+    // Convert radians to degrees
+    const angleDeg = angleRad * (180 / Math.PI);
+
+    return angleDeg;
+}
+
 
 
 function logPositionData() {
@@ -132,10 +152,9 @@ function logPositionData() {
 
 // ##################################################################### 
 
-injectArrow();
 setTimeout(() => {
     logPositionData();
-    injectLine('white-rook', 'white-king')
+    injectLine('white-king', 'black-knight')
 }, 3000);
 
 
