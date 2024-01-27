@@ -175,13 +175,16 @@ const getSuggestedMove = () => {
             if (engineLineNode) {
 
 
+                const moveNumbering = engineLineNode.querySelector(".move-san-premove").textContent
+                const color = moveNumbering.includes("...") ? "black" : "white"
                 const iconFontChessDiv = engineLineNode.querySelector('.icon-font-chess');
 
                 if (iconFontChessDiv) {
-                    const otherClassNames = Array.from(iconFontChessDiv.classList).filter(className => className !== 'icon-font-chess');
-                    suggestedMove += otherClassNames[1] + " "
+                    const pieceName = Array.from(iconFontChessDiv.classList).filter(className => className !== 'icon-font-chess');
+                    const arrangedPieceName = pieceName[1].split("-")[1] + "-" + pieceName[1].split("-")[0]
+                    suggestedMove += arrangedPieceName + " "
                 } else {
-                    suggestedMove += "pawn "
+                    suggestedMove += color + "-" + "pawn"
                 }
 
                 const suggestedMoveText = engineLineNode.querySelector('.move-san-san').textContent
@@ -202,12 +205,22 @@ const getSuggestedMove = () => {
     }
 
     console.log(suggestedMove)
+    return suggestedMove;
 };
 
 const mutationCallback = (mutationsList, observer) => {
     for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
-            getSuggestedMove();
+            // getSuggestedMove();
+            const suggestedMove = getSuggestedMove()
+            if (suggestedMove) {
+                const allPieces = extractPositionData();
+                const suggestedFrom = suggestedMove.split(" ")[0]
+                const suggestedTo = suggestedMove.split(" ")[1]
+                const piece1 = Array.from(allPieces).find(piece => piece.type === suggestedFrom);
+                console.log(piece1, "  to ", suggestedTo)
+
+            }
         }
     }
 };
