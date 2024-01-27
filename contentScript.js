@@ -154,10 +154,42 @@ function logPositionData() {
 
 setTimeout(() => {
     logPositionData();
-    injectLine('white-king', 'black-knight')
+    // injectLine('white-king', 'black-knight')
 }, 3000);
 
 
 
 
 
+
+
+function getSuggestedMove() {
+
+    var analysisLinesElement = document.querySelector('.analysis-view-lines');
+
+    if (analysisLinesElement) {
+        var engineLineComponentElement = analysisLinesElement.querySelector('.engine-line-component');
+
+        if (engineLineComponentElement) {
+            var suggestedMoveElement = engineLineComponentElement.querySelector('.move-san-san');
+
+            if (suggestedMoveElement) {
+                var suggestedMove = suggestedMoveElement.textContent;
+
+                console.log('Suggested Move:', suggestedMove);
+            } else {
+                console.error('Suggested move element not found inside engine-line-component');
+            }
+        } else {
+            console.error('engine-line-component element not found inside analysis-tab-analysis-lines');
+        }
+    } else {
+        console.error('analysis-tab-analysis-lines element not found');
+    }
+
+}
+
+setTimeout(() => {
+    getSuggestedMove()
+
+}, 3000)
