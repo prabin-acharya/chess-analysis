@@ -163,33 +163,70 @@ setTimeout(() => {
 
 
 
-function getSuggestedMove() {
-
-    var analysisLinesElement = document.querySelector('.analysis-view-lines');
+const getSuggestedMove = () => {
+    let suggestedMove = ""
+    const analysisLinesElement = document.querySelector('.analysis-view-lines');
 
     if (analysisLinesElement) {
-        var engineLineComponentElement = analysisLinesElement.querySelector('.engine-line-component');
+        const engineLineComponentElement = analysisLinesElement.querySelector('.engine-line-component');
 
         if (engineLineComponentElement) {
-            var suggestedMoveElement = engineLineComponentElement.querySelector('.move-san-san');
+            const engineLineNode = engineLineComponentElement.querySelector(".engine-line-node")
+            if (engineLineNode) {
 
-            if (suggestedMoveElement) {
-                var suggestedMove = suggestedMoveElement.textContent;
 
-                console.log('Suggested Move:', suggestedMove);
+                const iconFontChessDiv = engineLineNode.querySelector('.icon-font-chess');
+
+                if (iconFontChessDiv) {
+                    const otherClassNames = Array.from(iconFontChessDiv.classList).filter(className => className !== 'icon-font-chess');
+                    suggestedMove += otherClassNames[1] + " "
+                } else {
+                    suggestedMove += "pawn "
+                }
+
+                const suggestedMoveText = engineLineNode.querySelector('.move-san-san').textContent
+
+                if (suggestedMoveText) {
+                    suggestedMove += suggestedMoveText
+                } else {
+                    const suggestedMoveText = engineLineNode.querySelector('.move-san-afterfigurine').textContent
+
+                    if (suggestedMoveText) {
+                        suggestedMove += suggestedMoveText;
+                    }
+                }
             } else {
-                console.error('Suggested move element not found inside engine-line-component');
+                console.log("no engine line node--------------")
             }
-        } else {
-            console.error('engine-line-component element not found inside analysis-tab-analysis-lines');
         }
-    } else {
-        console.error('analysis-tab-analysis-lines element not found');
     }
 
-}
+    console.log(suggestedMove)
+};
+
+const mutationCallback = (mutationsList, observer) => {
+    for (const mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+            getSuggestedMove();
+        }
+    }
+};
+
+
+
+// Optionally, you can disconnect the observer when it's no longer needed
+// observer.disconnect();
+
 
 setTimeout(() => {
-    getSuggestedMove()
+    // getSuggestedMove()
+
+    const topElementToObserve = document.querySelector('.engine-line-component');
+
+    const observer = new MutationObserver(mutationCallback);
+
+    const observerConfig = { childList: true };
+
+    observer.observe(topElementToObserve, observerConfig);
 
 }, 3000)
