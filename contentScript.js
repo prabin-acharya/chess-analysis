@@ -46,14 +46,31 @@ function injectLine(from, to) {
     newPolygon.setAttribute('id', 'custom-line');
     newPolygon.setAttribute('class', 'line');
 
-    const points = `${piece1X} ${piece1Y}, ${piece2X} ${piece2Y}`;
+
+    const lineWidth = 4;
+
+    // const points = `${piece1X} ${piece1Y}, ${piece2X} ${piece2Y}`;
+    // const points = `${piece1X} ${piece1Y - lineWidth / 2}, ${piece2X} ${piece2Y - lineWidth / 2}, ${piece2X} ${piece2Y + lineWidth / 2}, ${piece1X} ${piece1Y + lineWidth / 2}`;
+    const points = `${piece1X} ${piece1Y - lineWidth / 2},${piece2X + lineWidth} ${piece2Y - (lineWidth / 2)}, ${piece2X + lineWidth} ${piece2Y - (lineWidth / 2 + lineWidth / 2)},${piece2X} ${piece2Y},${piece2X + lineWidth} ${piece2Y + (lineWidth / 2 + lineWidth / 2)}, ${piece2X + lineWidth} ${piece2Y + lineWidth / 2}, ${piece1X} ${piece1Y + lineWidth / 2}`;
+
     console.log(points)
     console.log(bottomLeftPoint)
 
     newPolygon.setAttribute('points', points);
-    newPolygon.setAttribute('style', 'fill: none; stroke: black; stroke-width: 3;');
+    // newPolygon.setAttribute('style', 'fill: none; stroke: rgba(0, 0, 255, 0.5); stroke-width: 2;');
+    newPolygon.setAttribute('style', 'fill: rgba(0, 0, 255, 0.5); stroke: none;');
+
 
     svgContainer.appendChild(newPolygon);
+
+    const redPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    redPoint.setAttribute('cx', piece2X);
+    redPoint.setAttribute('cy', piece2Y);
+    redPoint.setAttribute('r', 1);
+    redPoint.setAttribute('fill', 'green');
+
+    svgContainer.appendChild(redPoint);
+
 }
 
 
