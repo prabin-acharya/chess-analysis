@@ -32,14 +32,19 @@ function injectLine(from, to) {
     const piece1X = 100 / 8 * from.col - 100 / 16;
     const piece1Y = 100 / 8 * (9 - from.row) - 100 / 16;
 
-    const piece2X = 100 / 8 * to.col - 100 / 16;
-    const piece2Y = 100 / 8 * (9 - to.row) - 100 / 16;
+    let piece2X = 100 / 8 * to.col - 100 / 16;
+    let piece2Y = 100 / 8 * (9 - to.row) - 100 / 16;
 
     const length = calculateLength(piece1X, piece1Y, piece2X, piece2Y);
-    const bottomLeftPoint = findBottomLeftPoint(piece1X, piece1Y, piece2X, piece2Y)
 
     const angle = calculateAngle(piece1X, piece1Y, piece2X, piece2Y)
+
+
+    piece2X = piece1X + length
+    piece2Y = piece1Y
+
     console.log(angle, "angle")
+    console.log(length, "length")
 
 
     const newPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
@@ -49,28 +54,19 @@ function injectLine(from, to) {
 
     const lineWidth = 4;
 
-    // const points = `${piece1X} ${piece1Y}, ${piece2X} ${piece2Y}`;
-    // const points = `${piece1X} ${piece1Y - lineWidth / 2}, ${piece2X} ${piece2Y - lineWidth / 2}, ${piece2X} ${piece2Y + lineWidth / 2}, ${piece1X} ${piece1Y + lineWidth / 2}`;
-    const points = `${piece1X} ${piece1Y - lineWidth / 2},${piece2X + lineWidth} ${piece2Y - (lineWidth / 2)}, ${piece2X + lineWidth} ${piece2Y - (lineWidth / 2 + lineWidth / 2)},${piece2X} ${piece2Y},${piece2X + lineWidth} ${piece2Y + (lineWidth / 2 + lineWidth / 2)}, ${piece2X + lineWidth} ${piece2Y + lineWidth / 2}, ${piece1X} ${piece1Y + lineWidth / 2}`;
+
+    const points = `${piece1X} ${piece1Y - lineWidth / 2}, ${piece2X - lineWidth} ${piece2Y - lineWidth / 2}, ${piece2X - lineWidth} ${piece2Y - (lineWidth / 2 + lineWidth / 2)},${piece2X} ${piece2Y},${piece2X - lineWidth} ${piece2Y + (lineWidth / 2 + lineWidth / 2)}, ${piece2X - lineWidth} ${piece2Y + lineWidth / 2}, ${piece1X} ${piece1Y + lineWidth / 2}`;
 
     console.log(points)
-    console.log(bottomLeftPoint)
 
     newPolygon.setAttribute('points', points);
-    // newPolygon.setAttribute('style', 'fill: none; stroke: rgba(0, 0, 255, 0.5); stroke-width: 2;');
     newPolygon.setAttribute('style', 'fill: rgba(0, 0, 255, 0.5); stroke: none;');
+
+    newPolygon.style.transformOrigin = `${piece1X}px ${piece1Y}px`;
+    newPolygon.style.transform = `rotate(${angle}deg)`;
 
 
     svgContainer.appendChild(newPolygon);
-
-    const redPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    redPoint.setAttribute('cx', piece2X);
-    redPoint.setAttribute('cy', piece2Y);
-    redPoint.setAttribute('r', 1);
-    redPoint.setAttribute('fill', 'green');
-
-    svgContainer.appendChild(redPoint);
-
 }
 
 
@@ -131,6 +127,19 @@ function getPieceType(classList) {
     return '';
 }
 
+function calculateAngleWithXAxis(x1, y1, x2, y2) {
+    const deltaX = x2 - x1;
+    const deltaY = y2 - y1;
+
+    // Calculate the angle in radians
+    const angleInRadians = Math.atan2(deltaY, deltaX);
+
+    // Convert the angle to degrees
+    const angleInDegrees = (angleInRadians * 180) / Math.PI;
+
+    return angleInDegrees;
+}
+
 
 function calculateLength(x1, y1, x2, y2) {
     const dx = x2 - x1;
@@ -147,18 +156,6 @@ function findBottomLeftPoint(x1, y1, x2, y2) {
     }
 }
 
-function calculateAngle(x1, y1, x2, y2) {
-    const deltaX = x2 - x1;
-    const deltaY = y2 - y1;
-
-    // Calculate the angle in radians
-    const angleRad = Math.atan2(deltaY, deltaX);
-
-    // Convert radians to degrees
-    const angleDeg = angleRad * (180 / Math.PI);
-
-    return angleDeg;
-}
 
 
 
@@ -277,4 +274,23 @@ function letterToNumber(letter) {
     const baseCharCode = 'a'.charCodeAt(0);
     const numericValue = letter.charCodeAt(0) - baseCharCode + 1;
     return numericValue;
+}
+
+function calculateAngle(piece1X, piece1Y, piece2X, piece2Y) {
+    const vector1 = { x: 100 - 0, y: 0 - 0 };
+    const vector2 = { x: piece2X - piece1X, y: piece2Y - piece1Y };
+
+    const dotProduct = vector1.x * vector2.x + vector1.y * vector2.y;
+    const magnitude1 = Math.sqrt(vector1.x ** 2 + vector1.y ** 2);
+    const magnitude2 = Math.sqrt(vector2.x ** 2 + vector2.y ** 2);
+
+    const cosTheta = dotProduct / (magnitude1 * magnitude2);
+
+    // Calculate the angle in radians
+    const angleInRadians = Math.acos(cosTheta);
+
+    // Convert the angle to degrees
+    const angleInDegrees = (angleInRadians * 180) / Math.PI;
+
+    return angleInDegrees;
 }
