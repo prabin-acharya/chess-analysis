@@ -1,7 +1,7 @@
 console.log("Hello, I am in ContentScript")
 
-function injectLine(pieceType1, pieceType2) {
-    const allPieces = extractPositionData();
+function injectLine(from, to) {
+    // const allPieces = extractPositionData();
     const chessBoard = document.querySelector('wc-chess-board.board');
 
     if (!chessBoard) {
@@ -9,15 +9,15 @@ function injectLine(pieceType1, pieceType2) {
         return;
     }
 
-    const piece1 = Array.from(allPieces).find(piece => piece.type === pieceType1);
-    const piece2 = Array.from(allPieces).find(piece => piece.type === pieceType2);
-    console.log(piece1, piece2)
+    // const piece1 = Array.from(allPieces).find(piece => piece.type === pieceType1);
+    // const piece2 = Array.from(allPieces).find(piece => piece.type === pieceType2);
+    // console.log(piece1, piece2)
 
 
-    if (!piece1 || !piece2) {
-        console.error(`${pieceType1} or ${pieceType2} not found.`);
-        return;
-    }
+    // if (!piece1 || !piece2) {
+    //     console.error(`${pieceType1} or ${pieceType2} not found.`);
+    //     return;
+    // }
 
     const svgContainer = chessBoard.querySelector('.arrows');
 
@@ -27,11 +27,13 @@ function injectLine(pieceType1, pieceType2) {
     }
 
 
-    const piece1X = 100 / 8 * piece1.col - 100 / 16;
-    const piece1Y = 100 / 8 * (9 - piece1.row) - 100 / 16;
+    console.log(from, to, "+++")
 
-    const piece2X = 100 / 8 * piece2.col - 100 / 16;
-    const piece2Y = 100 / 8 * (9 - piece2.row) - 100 / 16;
+    const piece1X = 100 / 8 * from.col - 100 / 16;
+    const piece1Y = 100 / 8 * (9 - from.row) - 100 / 16;
+
+    const piece2X = 100 / 8 * to.col - 100 / 16;
+    const piece2Y = 100 / 8 * (9 - to.row) - 100 / 16;
 
     const length = calculateLength(piece1X, piece1Y, piece2X, piece2Y);
     const bottomLeftPoint = findBottomLeftPoint(piece1X, piece1Y, piece2X, piece2Y)
@@ -83,8 +85,8 @@ function extractPositionData() {
 
         const pieceData = {
             type: pieceType,
-            row: parseInt(row, 10),
             col: parseInt(col, 10),
+            row: parseInt(row, 10),
         };
 
         positionData.push(pieceData);
@@ -184,7 +186,7 @@ const getSuggestedMove = () => {
                     const arrangedPieceName = pieceName[1].split("-")[1] + "-" + pieceName[1].split("-")[0]
                     suggestedMove += arrangedPieceName + " "
                 } else {
-                    suggestedMove += color + "-" + "pawn"
+                    suggestedMove += color + "-" + "pawn" + " "
                 }
 
                 const suggestedMoveText = engineLineNode.querySelector('.move-san-san').textContent
@@ -204,22 +206,28 @@ const getSuggestedMove = () => {
         }
     }
 
-    console.log(suggestedMove)
     return suggestedMove;
 };
 
 const mutationCallback = (mutationsList, observer) => {
     for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
-            // getSuggestedMove();
             const suggestedMove = getSuggestedMove()
+
+            const existingPolygon = document.getElementById("custom-line");
+
+            if (existingPolygon) {
+                existingPolygon.remove();
+            }
             if (suggestedMove) {
                 const allPieces = extractPositionData();
                 const suggestedFrom = suggestedMove.split(" ")[0]
-                const suggestedTo = suggestedMove.split(" ")[1]
+                const suggestedFromRowCol = Array.from(allPieces).find(piece => piece.type === suggestedFrom)
+                const suggestedTo = suggestedMove.split(" ")[1].substring(suggestedMove.split(" ")[1].length - 2)
                 const piece1 = Array.from(allPieces).find(piece => piece.type === suggestedFrom);
-                console.log(piece1, "  to ", suggestedTo)
-
+                const suggestedToRowCol = { col: letterToNumber(suggestedTo[0]), row: parseInt(suggestedTo[1], 10) }
+                console.log(piece1, "  to ", suggestedToRowCol)
+                injectLine(suggestedFromRowCol, suggestedToRowCol)
             }
         }
     }
@@ -243,3 +251,13 @@ setTimeout(() => {
     observer.observe(topElementToObserve, observerConfig);
 
 }, 3000)
+
+
+
+
+function letterToNumber(letter) {
+    letter = letter.toLowerCase();
+    const baseCharCode = 'a'.charCodeAt(0);
+    const numericValue = letter.charCodeAt(0) - baseCharCode + 1;
+    return numericValue;
+}
