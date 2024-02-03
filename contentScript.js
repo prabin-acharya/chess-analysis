@@ -1,6 +1,6 @@
 console.log("Hello, I am in ContentScript")
 
-function injectLine(from, to) {
+function injectLine(from, to, index) {
     // const allPieces = extractPositionData();
     const chessBoard = document.querySelector('wc-chess-board.board');
 
@@ -11,7 +11,6 @@ function injectLine(from, to) {
 
     // const piece1 = Array.from(allPieces).find(piece => piece.type === pieceType1);
     // const piece2 = Array.from(allPieces).find(piece => piece.type === pieceType2);
-    // console.log(piece1, piece2)
 
 
     // if (!piece1 || !piece2) {
@@ -26,7 +25,6 @@ function injectLine(from, to) {
         return;
     }
 
-    console.log(from, to, "+++")
 
     const piece1X = 100 / 8 * from.col - 100 / 16;
     const piece1Y = 100 / 8 * (9 - from.row) - 100 / 16;
@@ -50,19 +48,36 @@ function injectLine(from, to) {
 
 
     const newPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    newPolygon.setAttribute('id', 'custom-line');
+    const id = "custom-line" + index
+    console.log(id, "****************8")
+    newPolygon.setAttribute('id', id);
     newPolygon.setAttribute('class', 'line');
 
 
-    const lineWidth = 4;
+    const lineWidth = 2;
 
 
     const points = `${piece1X} ${piece1Y - lineWidth / 2}, ${piece2X - lineWidth} ${piece2Y - lineWidth / 2}, ${piece2X - lineWidth} ${piece2Y - (lineWidth / 2 + lineWidth / 2)},${piece2X} ${piece2Y},${piece2X - lineWidth} ${piece2Y + (lineWidth / 2 + lineWidth / 2)}, ${piece2X - lineWidth} ${piece2Y + lineWidth / 2}, ${piece1X} ${piece1Y + lineWidth / 2}`;
 
     console.log(points)
+    // const colors = [
+    //     'rgba(53, 243, 65, 0.8)',   // Red with 50% opacity
+    //     'rgba(131, 187, 48, 0.8)',   // Green with 50% opacity
+    //     'rgba(82, 126, 65, 0.8)',
+    //     'rgba(106, 111, 69, 0.8)',
+    //     'rgba(162, 180, 82, 0.8);'
+    // ];
+    const colors = [
+        'rgb(48, 132, 216, 1)',   // Red with 50% opacity
+        'rgb(48, 132, 216, 0.8)',   // Green with 50% opacity
+        'rgb(48, 132, 216, 0.6)',
+        'rgb(48, 132, 216, 0.4)',
+        'rgb(48, 132, 216, 0.2)'
+    ];
 
     newPolygon.setAttribute('points', points);
-    newPolygon.setAttribute('style', 'fill: rgba(0, 0, 255, 0.5); stroke: none;');
+
+    newPolygon.setAttribute('style', `fill: ${colors[index]}; stroke: none;`);
 
     newPolygon.style.transformOrigin = `${piece1X}px ${piece1Y}px`;
     newPolygon.style.transform = `rotate(${angle}deg)`;
@@ -170,115 +185,154 @@ setTimeout(() => {
 
 const getSuggestedMove = () => {
     let suggestedMove = ""
+    const allSuggestedMoves = []
+
+
     const analysisLinesElement = document.querySelector('.analysis-view-lines');
 
     if (analysisLinesElement) {
         const engineLineComponentElement = analysisLinesElement.querySelector('.engine-line-component');
-
-        if (engineLineComponentElement) {
-            const engineLineNode = engineLineComponentElement.querySelector(".engine-line-node")
-            if (engineLineNode) {
+        const engineLineComponentElements = analysisLinesElement.querySelectorAll('.engine-line-component');
 
 
-                const moveNumbering = engineLineNode.querySelector(".move-san-premove").textContent
-                const color = moveNumbering.includes("...") ? "black" : "white"
-                const iconFontChessDiv = engineLineNode.querySelector('.icon-font-chess');
+        engineLineComponentElements.forEach(engineLineComponentElement => {
+            if (engineLineComponentElement) {
+                const engineLineNode = engineLineComponentElement.querySelector(".engine-line-node")
 
-                if (iconFontChessDiv) {
-                    const pieceName = Array.from(iconFontChessDiv.classList).filter(className => className !== 'icon-font-chess');
-                    const arrangedPieceName = pieceName[1].split("-")[1] + "-" + pieceName[1].split("-")[0]
-                    suggestedMove += arrangedPieceName + " "
-                } else {
-                    suggestedMove += color + "-" + "pawn" + " "
-                }
+                if (engineLineNode) {
+                    const moveNumbering = engineLineNode.querySelector(".move-san-premove").textContent
+                    const color = moveNumbering.includes("...") ? "black" : "white"
+                    const iconFontChessDiv = engineLineNode.querySelector('.icon-font-chess');
 
-                const suggestedMoveText = engineLineNode.querySelector('.move-san-san').textContent
+                    if (iconFontChessDiv) {
+                        const pieceName = Array.from(iconFontChessDiv.classList).filter(className => className !== 'icon-font-chess');
+                        const arrangedPieceName = pieceName[1].split("-")[1] + "-" + pieceName[1].split("-")[0]
+                        suggestedMove += arrangedPieceName + " "
+                    } else {
+                        suggestedMove += color + "-" + "pawn" + " "
+                    }
 
-                if (suggestedMoveText) {
-                    suggestedMove += suggestedMoveText
-                } else {
-                    const suggestedMoveText = engineLineNode.querySelector('.move-san-afterfigurine').textContent
+                    const suggestedMoveText = engineLineNode.querySelector('.move-san-san').textContent
 
                     if (suggestedMoveText) {
-                        suggestedMove += suggestedMoveText;
+                        suggestedMove += suggestedMoveText
+                    } else {
+                        const suggestedMoveText = engineLineNode.querySelector('.move-san-afterfigurine').textContent
+
+                        if (suggestedMoveText) {
+                            suggestedMove += suggestedMoveText;
+                        }
                     }
+                } else {
+                    console.log("no engine line node--------------")
                 }
-            } else {
-                console.log("no engine line node--------------")
             }
-        }
+
+            allSuggestedMoves.push(suggestedMove)
+            suggestedMove = ""
+        })
     }
 
-    return suggestedMove;
+    console.log(allSuggestedMoves, "##########@@@@@@@@@@")
+    return allSuggestedMoves;
 };
 
 const mutationCallback = (mutationsList, observer) => {
     for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
-            const suggestedMove = getSuggestedMove()
+            const suggestedMoves = getSuggestedMove()
 
-            const existingPolygon = document.getElementById("custom-line");
-
-            if (existingPolygon) {
-                existingPolygon.remove();
+            const existingPolygon0 = document.getElementById("custom-line0");
+            if (existingPolygon0) {
+                existingPolygon0.remove();
             }
-            if (suggestedMove) {
-                const movingPieceName = suggestedMove.split(" ")[0]
-                const pieceDestinationContainer = suggestedMove.split(" ")[1]
-
-                let suggestedTo = suggestedMove.split(" ")[1]
-                if (movingPieceName.split("-")[1] == "pawn") {
-                    if (suggestedTo.length == 4) {
-                        suggestedTo = suggestedTo.substring(2, 4)
-                    }
-                } else {
-                    if (suggestedTo.length == 3) suggestedTo = suggestedTo.substring(1)
-                    else if (suggestedTo.length == 4) suggestedTo = suggestedTo.substring(1, 3)
-                }
 
 
+            const existingPolygon1 = document.getElementById("custom-line1");
+            if (existingPolygon1) {
+                existingPolygon1.remove();
+            }
 
-                const suggestedToRowCol = { col: letterToNumber(suggestedTo[0]), row: parseInt(suggestedTo[1], 10) }
-                console.log(suggestedMove, suggestedToRowCol)
+            const existingPolygon2 = document.getElementById("custom-line2");
+            if (existingPolygon2) {
+                existingPolygon2.remove();
+            }
 
-                const allPieces = extractPositionData();
-                let suggestedFromRowCol = Array.from(allPieces).filter(piece => piece.type === movingPieceName)
+            const existingPolygon3 = document.getElementById("custom-line3");
+            if (existingPolygon3) {
+                existingPolygon3.remove();
+            }
 
-                // pawn
+            const existingPolygon4 = document.getElementById("custom-line4");
+            if (existingPolygon4) {
+                existingPolygon4.remove();
+            }
 
-                if (movingPieceName.split("-")[1] == "pawn") {
-                    if (pieceDestinationContainer.length == 2)
-                        suggestedFromRowCol = suggestedFromRowCol.filter(piece => piece.col == suggestedToRowCol.col)
-                    else {
-                        console.log(pieceDestinationContainer[0])
-                        suggestedFromRowCol = suggestedFromRowCol.filter(piece => {
-                            if (piece.col == letterToNumber(pieceDestinationContainer[0])) {
-                                if (Math.abs(piece.row - suggestedToRowCol.row) == 1) return piece
-                            }
+            const existingPolygon5 = document.getElementById("custom-line5");
+            if (existingPolygon5) {
+                existingPolygon5.remove();
+            }
+
+            console.log(suggestedMoves, "^^^^^^^^^^^^^^^^^^^^^^^^^^6")
+
+            suggestedMoves.forEach((suggestedMove, index) => {
+                if (suggestedMove) {
+                    const movingPieceName = suggestedMove.split(" ")[0]
+                    const pieceDestinationContainer = suggestedMove.split(" ")[1]
+
+                    let suggestedTo = suggestedMove.split(" ")[1]
+                    if (movingPieceName.split("-")[1] == "pawn") {
+                        if (suggestedTo.length == 4) {
+                            suggestedTo = suggestedTo.substring(2, 4)
                         }
-                        )
+                    } else {
+                        if (suggestedTo.length == 3) suggestedTo = suggestedTo.substring(1)
+                        else if (suggestedTo.length == 4) suggestedTo = suggestedTo.substring(1, 3)
                     }
+
+
+
+                    const suggestedToRowCol = { col: letterToNumber(suggestedTo[0]), row: parseInt(suggestedTo[1], 10) }
+
+                    const allPieces = extractPositionData();
+                    let suggestedFromRowCol = Array.from(allPieces).filter(piece => piece.type === movingPieceName)
+
+                    // pawn
+
+                    if (movingPieceName.split("-")[1] == "pawn") {
+                        if (pieceDestinationContainer.length == 2)
+                            suggestedFromRowCol = suggestedFromRowCol.filter(piece => piece.col == suggestedToRowCol.col)
+                        else {
+                            suggestedFromRowCol = suggestedFromRowCol.filter(piece => {
+                                if (piece.col == letterToNumber(pieceDestinationContainer[0])) {
+                                    if (Math.abs(piece.row - suggestedToRowCol.row) == 1) return piece
+                                }
+                            }
+                            )
+                        }
+                    }
+
+
+                    if (movingPieceName.split("-")[1] == "knight") {
+                        suggestedFromRowCol = suggestedFromRowCol.filter(piece => {
+                            if (Math.abs(piece.row - suggestedToRowCol.row) == 1 && Math.abs(piece.col - suggestedToRowCol.col) == 2) return piece
+                            if (Math.abs(piece.row - suggestedToRowCol.row) == 2 && Math.abs(piece.col - suggestedToRowCol.col) == 1) return piece
+                        })
+                    }
+
+                    if (movingPieceName.split("-") == "rook") {
+                        suggestedFromRowCol = suggestedFromRowCol.filter(piece => {
+                            if (piece.row == suggestedToRowCol.row || piece.col == suggestedToRowCol.col) return piece
+                        })
+                    }
+
+
+                    injectLine(suggestedFromRowCol[0], suggestedToRowCol, index)
                 }
 
-                console.log()
+            })
 
-                if (movingPieceName.split("-")[1] == "knight") {
-                    suggestedFromRowCol = suggestedFromRowCol.filter(piece => {
-                        if (Math.abs(piece.row - suggestedToRowCol.row) == 1 && Math.abs(piece.col - suggestedToRowCol.col) == 2) return piece
-                        if (Math.abs(piece.row - suggestedToRowCol.row) == 2 && Math.abs(piece.col - suggestedToRowCol.col) == 1) return piece
-                    })
-                }
 
-                if (movingPieceName.split("-") == "rook") {
-                    suggestedFromRowCol = suggestedFromRowCol.filter(piece => {
-                        if (piece.row == suggestedToRowCol.row || piece.col == suggestedToRowCol.col) return piece
-                    })
-                }
-
-                console.log(suggestedFromRowCol, "suggestedFromRowCol")
-
-                injectLine(suggestedFromRowCol[0], suggestedToRowCol)
-            }
         }
     }
 };
