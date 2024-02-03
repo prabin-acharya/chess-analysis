@@ -26,7 +26,6 @@ function injectLine(from, to) {
         return;
     }
 
-
     console.log(from, to, "+++")
 
     const piece1X = 100 / 8 * from.col - 100 / 16;
@@ -35,9 +34,12 @@ function injectLine(from, to) {
     let piece2X = 100 / 8 * to.col - 100 / 16;
     let piece2Y = 100 / 8 * (9 - to.row) - 100 / 16;
 
-    const length = calculateLength(piece1X, piece1Y, piece2X, piece2Y);
+    console.log(piece1X, piece1Y, piece2X, piece2Y)
 
+    const length = calculateLength(piece1X, piece1Y, piece2X, piece2Y);
     const angle = calculateAngle(piece1X, piece1Y, piece2X, piece2Y)
+    // angle with x-axis in clockwise direction, range [0, 360)
+
 
 
     piece2X = piece1X + length
@@ -64,7 +66,6 @@ function injectLine(from, to) {
 
     newPolygon.style.transformOrigin = `${piece1X}px ${piece1Y}px`;
     newPolygon.style.transform = `rotate(${angle}deg)`;
-
 
     svgContainer.appendChild(newPolygon);
 }
@@ -127,18 +128,6 @@ function getPieceType(classList) {
     return '';
 }
 
-function calculateAngleWithXAxis(x1, y1, x2, y2) {
-    const deltaX = x2 - x1;
-    const deltaY = y2 - y1;
-
-    // Calculate the angle in radians
-    const angleInRadians = Math.atan2(deltaY, deltaX);
-
-    // Convert the angle to degrees
-    const angleInDegrees = (angleInRadians * 180) / Math.PI;
-
-    return angleInDegrees;
-}
 
 
 function calculateLength(x1, y1, x2, y2) {
@@ -234,14 +223,61 @@ const mutationCallback = (mutationsList, observer) => {
                 existingPolygon.remove();
             }
             if (suggestedMove) {
-                const allPieces = extractPositionData();
-                const suggestedFrom = suggestedMove.split(" ")[0]
-                const suggestedFromRowCol = Array.from(allPieces).find(piece => piece.type === suggestedFrom)
-                const suggestedTo = suggestedMove.split(" ")[1].substring(suggestedMove.split(" ")[1].length - 2)
-                const piece1 = Array.from(allPieces).find(piece => piece.type === suggestedFrom);
+                const movingPieceName = suggestedMove.split(" ")[0]
+                const pieceDestinationContainer = suggestedMove.split(" ")[1]
+
+                let suggestedTo = suggestedMove.split(" ")[1]
+                if (movingPieceName.split("-")[1] == "pawn") {
+                    if (suggestedTo.length == 4) {
+                        suggestedTo = suggestedTo.substring(2, 4)
+                    }
+                } else {
+                    if (suggestedTo.length == 3) suggestedTo = suggestedTo.substring(1)
+                    else if (suggestedTo.length == 4) suggestedTo = suggestedTo.substring(1, 3)
+                }
+
+
+
                 const suggestedToRowCol = { col: letterToNumber(suggestedTo[0]), row: parseInt(suggestedTo[1], 10) }
-                console.log(piece1, "  to ", suggestedToRowCol)
-                injectLine(suggestedFromRowCol, suggestedToRowCol)
+                console.log(suggestedMove, suggestedToRowCol)
+
+                const allPieces = extractPositionData();
+                let suggestedFromRowCol = Array.from(allPieces).filter(piece => piece.type === movingPieceName)
+
+                // pawn
+
+                if (movingPieceName.split("-")[1] == "pawn") {
+                    if (pieceDestinationContainer.length == 2)
+                        suggestedFromRowCol = suggestedFromRowCol.filter(piece => piece.col == suggestedToRowCol.col)
+                    else {
+                        console.log(pieceDestinationContainer[0])
+                        suggestedFromRowCol = suggestedFromRowCol.filter(piece => {
+                            if (piece.col == letterToNumber(pieceDestinationContainer[0])) {
+                                if (Math.abs(piece.row - suggestedToRowCol.row) == 1) return piece
+                            }
+                        }
+                        )
+                    }
+                }
+
+                console.log()
+
+                if (movingPieceName.split("-")[1] == "knight") {
+                    suggestedFromRowCol = suggestedFromRowCol.filter(piece => {
+                        if (Math.abs(piece.row - suggestedToRowCol.row) == 1 && Math.abs(piece.col - suggestedToRowCol.col) == 2) return piece
+                        if (Math.abs(piece.row - suggestedToRowCol.row) == 2 && Math.abs(piece.col - suggestedToRowCol.col) == 1) return piece
+                    })
+                }
+
+                if (movingPieceName.split("-") == "rook") {
+                    suggestedFromRowCol = suggestedFromRowCol.filter(piece => {
+                        if (piece.row == suggestedToRowCol.row || piece.col == suggestedToRowCol.col) return piece
+                    })
+                }
+
+                console.log(suggestedFromRowCol, "suggestedFromRowCol")
+
+                injectLine(suggestedFromRowCol[0], suggestedToRowCol)
             }
         }
     }
@@ -267,6 +303,17 @@ setTimeout(() => {
 }, 3000)
 
 
+// angle with x-axis in clockwise direction, range [0, 360)
+function calculateAngle(cx, cy, ex, ey) {
+
+    var dy = ey - cy;
+    var dx = ex - cx;
+    var theta = Math.atan2(dy, dx); // range (-PI, PI]
+    theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
+    if (theta < 0) theta = 360 + theta; // range [0, 360)
+    return theta;
+}
+
 
 
 function letterToNumber(letter) {
@@ -276,21 +323,11 @@ function letterToNumber(letter) {
     return numericValue;
 }
 
-function calculateAngle(piece1X, piece1Y, piece2X, piece2Y) {
-    const vector1 = { x: 100 - 0, y: 0 - 0 };
-    const vector2 = { x: piece2X - piece1X, y: piece2Y - piece1Y };
 
-    const dotProduct = vector1.x * vector2.x + vector1.y * vector2.y;
-    const magnitude1 = Math.sqrt(vector1.x ** 2 + vector1.y ** 2);
-    const magnitude2 = Math.sqrt(vector2.x ** 2 + vector2.y ** 2);
 
-    const cosTheta = dotProduct / (magnitude1 * magnitude2);
 
-    // Calculate the angle in radians
-    const angleInRadians = Math.acos(cosTheta);
 
-    // Convert the angle to degrees
-    const angleInDegrees = (angleInRadians * 180) / Math.PI;
 
-    return angleInDegrees;
-}
+
+
+//  origin(0,0) is at the top left
