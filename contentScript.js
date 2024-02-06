@@ -191,7 +191,6 @@ const getSuggestedMove = () => {
     const analysisLinesElement = document.querySelector('.analysis-view-lines');
 
     if (analysisLinesElement) {
-        const engineLineComponentElement = analysisLinesElement.querySelector('.engine-line-component');
         const engineLineComponentElements = analysisLinesElement.querySelectorAll('.engine-line-component');
 
 
@@ -238,6 +237,7 @@ const getSuggestedMove = () => {
 };
 
 const mutationCallback = (mutationsList, observer) => {
+    console.log("mutation callback")
     for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
             const suggestedMoves = getSuggestedMove()
@@ -343,18 +343,36 @@ const mutationCallback = (mutationsList, observer) => {
 // observer.disconnect();
 
 
+
+
 setTimeout(() => {
     // getSuggestedMove()
 
-    const topElementToObserve = document.querySelector('.engine-line-component');
+    const AnalysisViewLines = document.querySelector('.analysis-view-lines');
+    const topElementToObserve = AnalysisViewLines.querySelector('.engine-line-component');
 
     const observer = new MutationObserver(mutationCallback);
 
     const observerConfig = { childList: true };
 
+    console.log(topElementToObserve, "**")
+
     observer.observe(topElementToObserve, observerConfig);
 
-}, 3000)
+
+
+    // 
+
+    // const sidebarViewComponent = document.querySelector(".sidebar-view-component")
+    // const sidebarObserver = new MutationObserver(sidebarObserverCallback)
+
+    // const sidebarObserverConfig = { childList: true };
+
+    // sidebarObserver.observe(sidebarViewComponent, sidebarObserverConfig)
+
+
+
+}, 5000)
 
 
 // angle with x-axis in clockwise direction, range [0, 360)
