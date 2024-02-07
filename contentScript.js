@@ -161,6 +161,9 @@ function findBottomLeftPoint(x1, y1, x2, y2) {
 }
 
 
+document.addEventListener("DOMContentLoaded", (event) => {
+    console.log("DOM fully loaded and parsed");
+});
 
 
 function logPositionData() {
@@ -176,11 +179,6 @@ setTimeout(() => {
     logPositionData();
     // injectLine('white-king', 'black-knight')
 }, 3000);
-
-
-
-
-
 
 
 const getSuggestedMove = () => {
@@ -242,36 +240,7 @@ const mutationCallback = (mutationsList, observer) => {
         if (mutation.type === 'childList') {
             const suggestedMoves = getSuggestedMove()
 
-            const existingPolygon0 = document.getElementById("custom-line0");
-            if (existingPolygon0) {
-                existingPolygon0.remove();
-            }
-
-
-            const existingPolygon1 = document.getElementById("custom-line1");
-            if (existingPolygon1) {
-                existingPolygon1.remove();
-            }
-
-            const existingPolygon2 = document.getElementById("custom-line2");
-            if (existingPolygon2) {
-                existingPolygon2.remove();
-            }
-
-            const existingPolygon3 = document.getElementById("custom-line3");
-            if (existingPolygon3) {
-                existingPolygon3.remove();
-            }
-
-            const existingPolygon4 = document.getElementById("custom-line4");
-            if (existingPolygon4) {
-                existingPolygon4.remove();
-            }
-
-            const existingPolygon5 = document.getElementById("custom-line5");
-            if (existingPolygon5) {
-                existingPolygon5.remove();
-            }
+            removeAllArrowsFromBoard()
 
             console.log(suggestedMoves, "^^^^^^^^^^^^^^^^^^^^^^^^^^6")
 
@@ -343,38 +312,105 @@ const mutationCallback = (mutationsList, observer) => {
 // observer.disconnect();
 
 
+function checkElementLoaded() {
+    const AnalysisViewLines = document.querySelector('.analysis-view-lines');
+    if (AnalysisViewLines) {
+        clearInterval(intervalId);
+        console.log('Element loaded');
+
+        const topElementToObserve = AnalysisViewLines.querySelector('.engine-line-component');
+
+        const observer = new MutationObserver(mutationCallback);
+
+        const observerConfig = { childList: true };
+
+        console.log(topElementToObserve, "**")
+
+        observer.observe(topElementToObserve, observerConfig);
+
+    } else {
+        console.log('Element not loaded yet');
+    }
+}
+
+const intervalId = setInterval(checkElementLoaded, 1000);
 
 
-setTimeout(() => {
-    // getSuggestedMove()
+
+
+const sidebarObserverCallback = (mutationsList, observer) => {
+    console.log("sidebar callback")
+    console.log(mutationsList)
+    // for (const mutation of mutationsList) {
+    //     if (mutation.type === 'childList') {
+    //         console.log("inside")
+    //     }
+    // }
+
+
+    removeAllArrowsFromBoard()
+
+
 
     const AnalysisViewLines = document.querySelector('.analysis-view-lines');
-    const topElementToObserve = AnalysisViewLines.querySelector('.engine-line-component');
+    console.log(AnalysisViewLines, "$$$$")
+    if (AnalysisViewLines) {
 
-    const observer = new MutationObserver(mutationCallback);
+        const topElementToObserve = AnalysisViewLines.querySelector('.engine-line-component');
 
-    const observerConfig = { childList: true };
+        const observer = new MutationObserver(mutationCallback);
 
-    console.log(topElementToObserve, "**")
+        const observerConfig = { childList: true };
 
-    observer.observe(topElementToObserve, observerConfig);
+        console.log(topElementToObserve, "**")
 
+        observer.observe(topElementToObserve, observerConfig);
 
-
-    // 
-
-    // const sidebarViewComponent = document.querySelector(".sidebar-view-component")
-    // const sidebarObserver = new MutationObserver(sidebarObserverCallback)
-
-    // const sidebarObserverConfig = { childList: true };
-
-    // sidebarObserver.observe(sidebarViewComponent, sidebarObserverConfig)
+    }
+}
 
 
+// setTimeout(() => {
+// getSuggestedMove()
 
-}, 5000)
+// const AnalysisViewLines = document.querySelector('.analysis-view-lines');
+// if (AnalysisViewLines) {
 
 
+//     const topElementToObserve = AnalysisViewLines.querySelector('.engine-line-component');
+
+//     const observer = new MutationObserver(mutationCallback);
+
+//     const observerConfig = { childList: true };
+
+//     console.log(topElementToObserve, "**")
+
+//     observer.observe(topElementToObserve, observerConfig);
+
+// }
+
+// 
+
+const sidebarViewComponent = document.querySelector(".sidebar-view-component")
+const sidebarObserver = new MutationObserver(sidebarObserverCallback)
+
+const sidebarObserverConfig = { childList: true };
+
+sidebarObserver.observe(sidebarViewComponent, sidebarObserverConfig)
+
+// }, 5000)
+
+
+
+window.onload = () => {
+    const AnalysisViewLines = document.querySelector('.analysis-view-lines');
+    console.log(AnalysisViewLines, "$$$$")
+};
+
+// const sidebarViewComponent = document.querySelector(".sidebar-view-component")
+// console.log(sidebarViewComponent)
+// const AnalysisViewLines = document.querySelector('.analysis-view-lines');
+// console.log(AnalysisViewLines)
 // angle with x-axis in clockwise direction, range [0, 360)
 function calculateAngle(cx, cy, ex, ey) {
 
@@ -398,6 +434,47 @@ function letterToNumber(letter) {
 
 
 
+
+
+
+
+
+
+
+
+const removeAllArrowsFromBoard = () => {
+    const existingPolygon0 = document.getElementById("custom-line0");
+    if (existingPolygon0) {
+        existingPolygon0.remove();
+    }
+
+
+    const existingPolygon1 = document.getElementById("custom-line1");
+    if (existingPolygon1) {
+        existingPolygon1.remove();
+    }
+
+    const existingPolygon2 = document.getElementById("custom-line2");
+    if (existingPolygon2) {
+        existingPolygon2.remove();
+    }
+
+    const existingPolygon3 = document.getElementById("custom-line3");
+    if (existingPolygon3) {
+        existingPolygon3.remove();
+    }
+
+    const existingPolygon4 = document.getElementById("custom-line4");
+    if (existingPolygon4) {
+        existingPolygon4.remove();
+    }
+
+    const existingPolygon5 = document.getElementById("custom-line5");
+    if (existingPolygon5) {
+        existingPolygon5.remove();
+    }
+
+}
 
 
 

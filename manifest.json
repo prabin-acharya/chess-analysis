@@ -3,7 +3,7 @@
   "name": "Chess Analysis",
   "description": "",
   "version": "0.1",
-  "permissions": ["activeTab"],
+  "permissions": ["activeTab", "webNavigation"],
   "content_scripts": [
     {
       "matches": ["*://*.chess.com/*"],
