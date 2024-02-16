@@ -8,20 +8,13 @@ function drawLine(from, to, index) {
         return;
     }
 
-    const svgContainer = chessBoard.querySelector('.arrows');
-
-    if (!svgContainer) {
-        console.error('SVG container not found.');
-        return;
-    }
-
     const piece1X = 100 / 8 * from.col - 100 / 16;
     const piece1Y = 100 / 8 * (9 - from.row) - 100 / 16;
 
     let piece2X = 100 / 8 * to.col - 100 / 16;
     let piece2Y = 100 / 8 * (9 - to.row) - 100 / 16;
 
-    console.log("x1, y1, x2, y2 endpoints of arrow: ", piece1X, piece1Y, piece2X, piece2Y)
+    // console.log("x1, y1, x2, y2 endpoints of arrow: ", piece1X, piece1Y, piece2X, piece2Y)
 
     const length = calculateLength(piece1X, piece1Y, piece2X, piece2Y);
     const angle = calculateAngle(piece1X, piece1Y, piece2X, piece2Y)  // angle with x-axis in clockwise direction, range [0, 360)
@@ -29,7 +22,7 @@ function drawLine(from, to, index) {
     piece2X = piece1X + length
     piece2Y = piece1Y
 
-    console.log("angle: ", angle, " length: ", length)
+    // console.log("angle: ", angle, " length: ", length)
 
     const newPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     const id = "custom-line" + index
@@ -40,10 +33,10 @@ function drawLine(from, to, index) {
 
     const points = `${piece1X} ${piece1Y - lineWidth / 2}, ${piece2X - lineWidth} ${piece2Y - lineWidth / 2}, ${piece2X - lineWidth} ${piece2Y - (lineWidth / 2 + lineWidth / 2)},${piece2X} ${piece2Y},${piece2X - lineWidth} ${piece2Y + (lineWidth / 2 + lineWidth / 2)}, ${piece2X - lineWidth} ${piece2Y + lineWidth / 2}, ${piece1X} ${piece1Y + lineWidth / 2}`;
 
-    console.log("points of polygon", points)
+    // console.log("points of polygon", points)
     const colors = [
-        'rgb(48, 132, 216, 1)',   // Red with 50% opacity
-        'rgb(48, 132, 216, 0.8)',   // Green with 50% opacity
+        'rgb(48, 132, 216, 1)',
+        'rgb(48, 132, 216, 0.8)',
         'rgb(48, 132, 216, 0.6)',
         'rgb(48, 132, 216, 0.4)',
         'rgb(48, 132, 216, 0.2)'
@@ -51,10 +44,19 @@ function drawLine(from, to, index) {
 
     newPolygon.setAttribute('points', points);
     newPolygon.setAttribute('style', `fill: ${colors[index]}; stroke: none;`);
+    newPolygon.style.zIndex = "999999";
     newPolygon.style.transformOrigin = `${piece1X}px ${piece1Y}px`;
     newPolygon.style.transform = `rotate(${angle}deg)`;
 
-    svgContainer.appendChild(newPolygon);
+
+    const coordinates = document.querySelector('.coordinates');
+
+    if (!coordinates) {
+        console.log('coordinates div not found.');
+        return;
+    }
+
+    coordinates.appendChild(newPolygon)
 }
 
 
@@ -145,7 +147,7 @@ const getSuggestedMove = () => {
                         }
                     }
                 } else {
-                    console.log("no engine line node--------------")
+                    // console.log("no engine line node--------------")
                 }
             }
 
@@ -154,13 +156,13 @@ const getSuggestedMove = () => {
         })
     }
 
-    console.log(allSuggestedMoves, "allSuggestedMovesByEngines")
+    // console.log(allSuggestedMoves, "allSuggestedMovesByEngines")
 
     return allSuggestedMoves;
 };
 
 const mutationCallback = (mutationsList, observer) => {
-    console.log("after a move-----------------------")
+    // console.log("after a move-----------------------")
     for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
             const suggestedMoves = getSuggestedMove()
@@ -234,6 +236,8 @@ function checkElementLoaded() {
         console.log('Element loaded');
 
         const topElementToObserve = AnalysisViewLines.querySelector('.engine-line-component');
+        console.log(topElementToObserve, "engine-line-component---timer")
+
 
         const observer = new MutationObserver(mutationCallback);
 
@@ -260,6 +264,7 @@ const sidebarObserverCallback = (mutationsList, observer) => {
     if (AnalysisViewLines) {
 
         const topElementToObserve = AnalysisViewLines.querySelector('.engine-line-component');
+        console.log(topElementToObserve, "engine-line-component---sidebar observer")
 
         const observer = new MutationObserver(mutationCallback);
 
@@ -267,12 +272,18 @@ const sidebarObserverCallback = (mutationsList, observer) => {
 
 
         observer.observe(topElementToObserve, observerConfig);
-
     }
 }
 
 
+setTimeout(() => {
+    console.log(document.body)
+    console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+}, 15000)
+
+
 const sidebarViewComponent = document.querySelector(".sidebar-view-component")
+console.log(sidebarViewComponent)
 const sidebarObserver = new MutationObserver(sidebarObserverCallback)
 const sidebarObserverConfig = { childList: true };
 sidebarObserver.observe(sidebarViewComponent, sidebarObserverConfig)
@@ -352,3 +363,4 @@ function getPieceType(classList) {
 
 
 //  origin(0,0) is at the top left
+
